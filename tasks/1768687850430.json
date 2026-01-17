@@ -1,0 +1,10 @@
+{
+  "id": "1768687850430",
+  "name": "التقاط صورة للموقع",
+  "description": "لقطة شاشة كاملة أو لعنصر معين",
+  "type": "screenshot",
+  "status": "running",
+  "script": "await page.goto('df.com');\nawait page.waitForLoadState('networkidle');\nreturn await page.screenshot();",
+  "targetUrl": "df.com",
+  "createdAt": "2026-01-17T22:10:50.430Z"
+}
