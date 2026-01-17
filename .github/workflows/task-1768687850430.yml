@@ -1,0 +1,232 @@
+name: Web Automation Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      runCount:
+        description: 'عدد مرات تشغيل المهمة'
+        required: false
+        default: '1'
+        type: string
+      taskId:
+        description: 'معرف المهمة'
+        required: false
+        type: string
+      taskName:
+        description: 'اسم المهمة'
+        required: false
+        type: string
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium
+      
+      - name: Create Results Directory
+        run: mkdir -p results
+      
+      - name: Run Task Multiple Times
+        run: |
+          cat > run_task.js << 'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const path = require('path');
+          
+          const STEALTH_CONFIG = {
+            blockWebRTC: true,
+            randomUserAgent: true,
+            randomViewport: true,
+            hideWebdriver: true,
+            level: 'advanced'
+          };
+          
+          const TASK_DATA = {
+            name: 'التقاط صورة للموقع',
+            type: 'screenshot',
+            targetUrl: 'df.com',
+            script: 'await page.goto(\'df.com\');
+await page.waitForLoadState(\'networkidle\');
+return await page.screenshot();'
+          };
+          
+          const RUN_COUNT = parseInt(process.env.RUN_COUNT || '1', 10) || 1;
+          
+          console.log('🔄 سيتم تشغيل المهمة ' + RUN_COUNT + ' مرات');
+          
+          async function runTask(runNumber) {
+            console.log('');
+            console.log('═'.repeat(60));
+            console.log('🚀 تشغيل رقم #' + runNumber + ' من ' + RUN_COUNT);
+            console.log('═'.repeat(60));
+            
+            const browser = await chromium.launch({
+              headless: true,
+              args: [
+                '--disable-blink-features=AutomationControlled',
+                STEALTH_CONFIG.blockWebRTC ? '--disable-webrtc' : '',
+                '--no-sandbox',
+                '--disable-dev-shm-usage'
+              ].filter(Boolean)
+            });
+
+            try {
+              const context = await browser.newContext({
+                userAgent: STEALTH_CONFIG.randomUserAgent 
+                  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' 
+                  : undefined,
+                viewport: STEALTH_CONFIG.randomViewport 
+                  ? { width: 1920, height: 1080 } 
+                  : undefined
+              });
+
+              if (STEALTH_CONFIG.hideWebdriver) {
+                await context.addInitScript(() => {
+                  Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                  });
+                });
+              }
+
+              const page = await context.newPage();
+              
+              try {
+                console.log('⏳ الذهاب إلى الموقع: ' + TASK_DATA.targetUrl);
+                await page.goto(TASK_DATA.targetUrl || 'https://example.com', {
+                  waitUntil: 'networkidle'
+                });
+                
+                const runDir = 'results/run_' + runNumber;
+                if (!fs.existsSync(runDir)) {
+                  fs.mkdirSync(runDir, { recursive: true });
+                }
+                
+                console.log('📸 التقاط لقطة شاشة...');
+                await page.screenshot({ 
+                  path: runDir + '/screenshot.png', 
+                  fullPage: true 
+                });
+                
+                const results = {
+                  runNumber: runNumber,
+                  taskName: TASK_DATA.name,
+                  taskType: TASK_DATA.type,
+                  status: 'success',
+                  timestamp: new Date().toISOString(),
+                  url: page.url(),
+                  title: await page.title()
+                };
+                
+                fs.writeFileSync(
+                  runDir + '/results.json', 
+                  JSON.stringify(results, null, 2)
+                );
+                
+                console.log('✅ تشغيل #' + runNumber + ' اكتمل بنجاح');
+                await context.close();
+                return true;
+                
+              } catch (error) {
+                console.error('❌ خطأ في التشغيل #' + runNumber + ':', error.message);
+                const runDir = 'results/run_' + runNumber;
+                if (!fs.existsSync(runDir)) {
+                  fs.mkdirSync(runDir, { recursive: true });
+                }
+                fs.writeFileSync(runDir + '/error.log', error.stack);
+                return false;
+              } finally {
+                await context.close();
+              }
+            } finally {
+              await browser.close();
+            }
+          }
+          
+          async function runAll() {
+            console.log('📊 معلومات المهمة:');
+            console.log('   المهمة: ' + TASK_DATA.name);
+            console.log('   النوع: ' + TASK_DATA.type);
+            console.log('   الموقع: ' + TASK_DATA.targetUrl);
+            console.log('');
+            
+            let successCount = 0;
+            let failureCount = 0;
+            
+            for (let i = 1; i <= RUN_COUNT; i++) {
+              try {
+                const success = await runTask(i);
+                if (success) {
+                  successCount++;
+                } else {
+                  failureCount++;
+                }
+              } catch (err) {
+                console.error('فشل التشغيل #' + i, err);
+                failureCount++;
+              }
+              
+              if (i < RUN_COUNT) {
+                console.log('');
+                console.log('⏳ انتظار 3 ثوانٍ قبل التشغيل التالي...');
+                await new Promise(r => setTimeout(r, 3000));
+              }
+            }
+            
+            console.log('');
+            console.log('═'.repeat(60));
+            console.log('📊 النتائج النهائية:');
+            console.log('   إجمالي التشغيلات: ' + RUN_COUNT);
+            console.log('   نجح: ✅ ' + successCount);
+            console.log('   فشل: ❌ ' + failureCount);
+            console.log('═'.repeat(60));
+            
+            if (failureCount > 0) {
+              process.exit(1);
+            }
+          }
+          
+          runAll().catch(err => {
+            console.error('فشل التنفيذ:', err);
+            process.exit(1);
+          });
+          EOF
+          
+          node run_task.js
+        env:
+          RUN_COUNT: ${{ inputs.runCount }}
+          STEALTH_LEVEL: advanced
+      
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task-results-${{ github.run_number }}
+          path: results/
+          retention-days: 7
+      
+      - name: Generate Summary
+        if: always()
+        run: |
+          echo "## 📊 نتائج التشغيل" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**المهمة:** التقاط صورة للموقع" >> $GITHUB_STEP_SUMMARY
+          echo "**النوع:** screenshot" >> $GITHUB_STEP_SUMMARY
+          echo "**عدد مرات التشغيل:** ${{ inputs.runCount || '1' }}" >> $GITHUB_STEP_SUMMARY
+          if [ -d results ]; then
+            echo "**المجلدات المنشأة:**" >> $GITHUB_STEP_SUMMARY
+            ls -la results/ | grep "run_" | awk '{print "- " $NF}' >> $GITHUB_STEP_SUMMARY
+          fi
