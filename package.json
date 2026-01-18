@@ -1,0 +1,12 @@
+{
+  "name": "web-automation-bot",
+  "version": "1.0.0",
+  "description": "Automated web tasks with Playwright and advanced stealth",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests\""
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}

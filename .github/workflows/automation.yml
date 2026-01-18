@@ -1,0 +1,73 @@
+name:  Web Automation Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: 'Task ID to run (leave empty for all)'
+        required: false
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tasks: ${{ steps.get-tasks.outputs.tasks }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-tasks
+        run: |
+          if [ -z "${{ github.event.inputs.task_id }}" ]; then
+            echo "tasks=$(cat tasks.json | jq -c '[.[].id]')" >> $GITHUB_OUTPUT
+          else
+            echo "tasks=["${{ github.event.inputs.task_id }}"]" >> $GITHUB_OUTPUT
+          fi
+
+  run-task:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task_id: ${{ fromJson(needs.setup.outputs.tasks) }}
+      fail-fast: false
+      max-parallel: 1
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Install Playwright
+        run: npx playwright install chromium
+      
+      - name: Run Task
+        run: node scripts/task-${{ matrix.task_id }}.js
+        env:
+          STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
+          TASK_CREDENTIALS: '${{ secrets.TASK_CREDENTIALS }}'
+      
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ matrix.task_id }}-${{ github.run_number }}
+          path: |
+            results/
+            screenshots/
+            videos/
+          retention-days: 7
+      
+      - name: Upload Logs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: logs-${{ matrix.task_id }}-${{ github.run_number }}
+          path: logs/
+          retention-days: 7
