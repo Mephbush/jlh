@@ -1,0 +1,42 @@
+name: 📋 تحميل ملفات
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Install Playwright
+        run: npx playwright install chromium
+      
+      - name: Run "تحميل ملفات"
+        run: node scripts/task-69678e68-3f16-4dce-929a-039ad3d10509.js
+        env:
+          STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
+          TASK_CREDENTIALS: '${{ secrets.TASK_CREDENTIALS }}'
+      
+      - name: Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 69678e68-3f16-4dce-929a-039ad3d10509-${{ github.run_number }}
+          path: |
+            results/
+            screenshots/
+            videos/
+          retention-days: 7
