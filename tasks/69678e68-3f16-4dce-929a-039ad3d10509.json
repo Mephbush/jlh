@@ -1,0 +1,10 @@
+{
+  "id": "69678e68-3f16-4dce-929a-039ad3d10509",
+  "name": "تحميل ملفات",
+  "description": "تحميل المستندات والصور تلقائياً",
+  "type": "custom",
+  "status": "running",
+  "script": "async function runTask(page) {\n  try {\n    await page.goto('undefined');\n    const links = await page.evaluate(() => {\n      const extensions = '';\n      return Array.from(document.querySelectorAll('a[href]'))\n        .map(a => a.href)\n        .filter(href => !extensions || extensions.split(',').some(ext => href.includes(ext.trim())));\n    });\n    return { files: links, count: links.length };\n  } catch (error) {\n    console.error('Error:', error.message);\n    return { success: false, error: error.message };\n  }\n}",
+  "targetUrl": "",
+  "createdAt": "2026-01-20T20:52:40.719Z"
+}
