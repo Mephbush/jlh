@@ -13,6 +13,17 @@
     "importedFrom": "github",
     "originalId": "task-58a0432f-baf6-47a9-8953-f1810aa83ed6",
     "importedAt": "2026-01-21T20:49:45.085Z",
-    "executionHistory": []
-  }
+    "executionHistory": [],
+    "lastGitHubRun": {
+      "timestamp": "2026-01-21T20:50:40.271Z",
+      "runCount": 1,
+      "totalExecutionTime": 41663,
+      "dispatchMetrics": {
+        "triggerTime": 4344,
+        "validationTime": 5003,
+        "totalTime": 41663
+      }
+    }
+  },
+  "lastRun": "2026-01-21T20:50:40.271Z"
 }
