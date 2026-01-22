@@ -1,4 +1,4 @@
-name: Web Automation Bot
+name: حركة ونك
 
 on:
   workflow_dispatch:
@@ -37,7 +37,7 @@ jobs:
           npm install playwright
           npx playwright install chromium
       
-      - name: Run "خشه وبشه"
+      - name: Run "هجوم ونك"
         run: node scripts/task-imported-1768707490571-sj0qb.js
         env:
           STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
