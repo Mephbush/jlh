@@ -37,9 +37,15 @@ jobs:
           npm install playwright
           npx playwright install chromium
       
+      - name: Run "خشه وبشه"
+        run: node scripts/task-1768780464768.js
+        env:
+          STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
+          TASK_CREDENTIALS: '${{ secrets.TASK_CREDENTIALS }}'
+
+          
       - name: Create Results Directory
         run: mkdir -p results
-      
         env:
           RUN_COUNT: ${{ inputs.runCount }}
           STEALTH_LEVEL: advanced
