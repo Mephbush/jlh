@@ -38,5 +38,4 @@ jobs:
           path: |
             results/
             screenshots/
-            videos/
           retention-days: 7
