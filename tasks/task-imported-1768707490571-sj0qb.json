@@ -15,15 +15,15 @@
     "importedAt": "2026-01-20T19:27:28.606Z",
     "executionHistory": [],
     "lastGitHubRun": {
-      "timestamp": "2026-01-22T01:12:01.404Z",
+      "timestamp": "2026-01-22T02:10:43.357Z",
       "runCount": 1,
-      "totalExecutionTime": 12809,
+      "totalExecutionTime": 9787,
       "dispatchMetrics": {
-        "triggerTime": 12165,
-        "validationTime": 638,
-        "totalTime": 12809
+        "triggerTime": 9451,
+        "validationTime": 262,
+        "totalTime": 9787
       }
     }
   },
-  "lastRun": "2026-01-22T01:12:01.404Z"
+  "lastRun": "2026-01-22T02:10:43.357Z"
 }
