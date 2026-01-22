@@ -38,7 +38,7 @@ jobs:
           npx playwright install chromium
       
       - name: Run "خشه وبشه"
-        run: node scripts/task-1768780464768.js
+        run: node scripts/task-imported-1768707490571-sj0qb.js
         env:
           STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
           TASK_CREDENTIALS: '${{ secrets.TASK_CREDENTIALS }}'
