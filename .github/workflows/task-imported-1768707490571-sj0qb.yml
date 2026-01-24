@@ -2,7 +2,7 @@ name: حركة ونك
 
 on:
   workflow_dispatch:
-    inputs:
+    inputs: 
       runCount:
         description: 'عدد مرات تشغيل المهمة'
         required: false
