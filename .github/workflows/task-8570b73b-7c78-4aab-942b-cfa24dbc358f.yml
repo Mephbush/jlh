@@ -39,4 +39,6 @@ jobs:
             results/
             screenshots/
             videos/
+            /videos
+            outputs/
           retention-days: 7
