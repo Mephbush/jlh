@@ -1,30 +1,24 @@
-name: حركة ونك
+name: Task task-imported-1768707490571-sj0qb
 
+# Trigger on manual dispatch and schedule
 on:
   workflow_dispatch:
     inputs:
       runCount:
-        description: 'عدد مرات تشغيل المهمة'
+        description: 'عدد مرات تشغيل المهمة (Number of runs)'
         required: false
         default: '1'
         type: string
-      taskId:
-        description: 'معرف المهمة'
-        required: false
-        type: string
-      taskName:
-        description: 'اسم المهمة'
-        required: false
-        type: string
+
   schedule:
     - cron: '0 */6 * * *'
 
 jobs:
-  automation:
+  run-task:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
       
       - name: Setup Node.js
@@ -34,41 +28,49 @@ jobs:
       
       - name: Install Dependencies
         run: |
-          npm install playwright
+          npm install --save-dev playwright
           npx playwright install chromium
       
-      - name: Run "هجوم ونك"
-        run: node scripts/task-imported-1768707490571-sj0qb.js
-        env:
-          STEALTH_CONFIG: '${{ secrets.STEALTH_CONFIG }}'
-          TASK_CREDENTIALS: '${{ secrets.TASK_CREDENTIALS }}'
-
-          
       - name: Create Results Directory
         run: mkdir -p results
+      
+      - name: Run Task Script
+        run: node scripts/task-imported-1768707490571-sj0qb.js
         env:
-          RUN_COUNT: ${{ inputs.runCount }}
+          RUN_COUNT: ${{ inputs.runCount || '1' }}
+          TASK_ID: task-imported-1768707490571-sj0qb
+          TASK_NAME: task-imported-1768707490571-sj0qb
+          TARGET_URL: https://example.com
           STEALTH_LEVEL: advanced
+          STEALTH_HIDE_WEBDRIVER: true
+          STEALTH_RANDOM_UA: true
+          STEALTH_RANDOM_VIEWPORT: true
+          STEALTH_BLOCK_WEBRTC: true
       
       - name: Upload Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: task-results-${{ github.run_number }}
-          path: |
-            results/
-            videos/
+          name: task-results-run-${{ github.run_number }}
+          path: results/
           retention-days: 7
       
-      - name: Generate Summary
+      - name: Generate Summary Report
         if: always()
         run: |
-          echo "## 📊 نتائج التشغيل" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Task Execution Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**المهمة:** هجوم وِنك" >> $GITHUB_STEP_SUMMARY
-          echo "**النوع:** custom" >> $GITHUB_STEP_SUMMARY
-          echo "**عدد مرات التشغيل:** ${{ inputs.runCount || '1' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Task:** task-imported-1768707490571-sj0qb" >> $GITHUB_STEP_SUMMARY
+          echo "**Task ID:** task-imported-1768707490571-sj0qb" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow:** task-task-imported-1768707490571-sj0qb.yml" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Count:** ${{ inputs.runCount || '1' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ -d results ]; then
-            echo "**المجلدات المنشأة:**" >> $GITHUB_STEP_SUMMARY
-            ls -la results/ | grep "run_" | awk '{print "- " $NF}' >> $GITHUB_STEP_SUMMARY
+            echo "**Results:** ```" >> $GITHUB_STEP_SUMMARY
+            find results -type f -name "*.json" | head -5 | while read f; do
+              echo "- $(basename $f)" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "```" >> $GITHUB_STEP_SUMMARY
           fi
